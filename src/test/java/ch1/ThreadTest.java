@@ -197,4 +197,21 @@ public class ThreadTest {
 
         TimeUnit.DAYS.sleep(1);
     }
+
+    @Test
+    public void threadGroupTest() throws InterruptedException {
+
+        ThreadGroup group = new ThreadGroup("Search Group");
+
+        SearchTask task = new SearchTask();
+        for(int i = 0; i < 10; i++) {
+            Thread t = new Thread(group, task);
+            t.start();
+            TimeUnit.SECONDS.wait(1);
+        }
+
+        System.out.println(group.activeCount());
+        group.list();
+
+    }
 }
