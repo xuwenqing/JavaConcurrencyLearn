@@ -8,6 +8,8 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -15,6 +17,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class ThreadTest {
 
+    //线程的创建和运行
     @Test
     public void basicTest() {
         for(int i = 1; i<10; i++)
@@ -34,6 +37,7 @@ public class ThreadTest {
         pw.printf("Main : ************************* \n",thread.getState());
     }
 
+    //线程信息的获取和设置
     @Test
     public void threadStateTest() {
         Thread[] threads = new Thread[10];
@@ -77,6 +81,7 @@ public class ThreadTest {
         pw.close();
     }
 
+    //线程的中断
     @Test
     public void interruptTest() {
         Thread t = new Thread(new PrimeGenerator(),"PrimeGenerator Thread");
@@ -89,8 +94,9 @@ public class ThreadTest {
         t.interrupt();
     }
 
+    //线程中断的控制
     @Test
-    public void interruptExceptionTest() {
+    public void interruptExceptionControlTest() {
         FileSearch cFileSearch = new FileSearch("c://","readme.txt");
         Thread cSearchThread = new Thread(cFileSearch,"FileSearch Thread C");
         cSearchThread.start();
@@ -100,13 +106,14 @@ public class ThreadTest {
         dSearchThread.start();
 
         try {
-            TimeUnit.SECONDS.sleep(2);
+            TimeUnit.SECONDS.sleep(5);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         cSearchThread.interrupt();
     }
 
+    //线程的休眠
     @Test
     public void loopClockTest() {
         LoopClock loopClock = new LoopClock();
@@ -122,6 +129,7 @@ public class ThreadTest {
         clockThread.interrupt();
     }
 
+    //等待线程的终止
     @Test
     public void joinTest() {
         DataSourceLoader dataSourceLoader = new DataSourceLoader();
@@ -185,6 +193,7 @@ public class ThreadTest {
         System.out.printf("joinTest : resources loading finished %s.\n", new Date());
     }
 
+    //守护线程的创建和运行
     @Test
     public void daemonTest() throws InterruptedException {
         Deque<Event> events =  new ConcurrentLinkedDeque<Event>();
@@ -198,6 +207,8 @@ public class ThreadTest {
         TimeUnit.DAYS.sleep(1);
     }
 
+
+    //线程组
     @Test
     public void threadGroupTest() throws InterruptedException {
 
@@ -207,11 +218,45 @@ public class ThreadTest {
         for(int i = 0; i < 10; i++) {
             Thread t = new Thread(group, task);
             t.start();
-            TimeUnit.SECONDS.wait(1);
+            Thread.sleep(1000);
         }
 
         System.out.println(group.activeCount());
         group.list();
 
+        while(group.activeCount()>9) {
+            Thread.sleep(1000);
+        }
+
+        group.interrupt();
+
     }
+
+    //自定义线程组以及定义捕获异常
+    @Test
+    public void threadGroupUncaughtExceptionTest() throws InterruptedException {
+        ThreadGroup threadGroup = new MyThreadGroup("thread group test");
+
+        ExceptionGenerator generator = new ExceptionGenerator();
+        for(int i = 0; i < 5; i++) {
+            Thread t = new Thread(threadGroup,generator);
+            t.start();
+        }
+        TimeUnit.SECONDS.sleep(60);
+    }
+
+    //自定义线程工厂
+    @Test
+    public void threadFactoryTest() throws InterruptedException {
+        MyThreadFactory factory = new MyThreadFactory("普通线程");
+        Runnable runnable = new NormalRunnable();
+        for(int i = 0; i < 5; i++) {
+            Thread t = factory.newThread(runnable);
+            t.start();
+            TimeUnit.SECONDS.sleep(1);
+        }
+        System.out.printf("各个线程的创建状态 ： \n%s", factory.getStatus());
+    }
+
+
 }
