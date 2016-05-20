@@ -1,6 +1,9 @@
 package ch3;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 
 /**
  * Created by wenqing on 2016/5/19.
@@ -47,7 +50,7 @@ public class Test {
     @org.junit.Test
     public void countDownLatchTest() throws InterruptedException {
 
-        Thread[] participates = new Thread[5];
+        Thread[] participates = new Thread[10];
 
         CountDownLatch latch = new CountDownLatch(participates.length);
 
@@ -70,5 +73,46 @@ public class Test {
 
     }
 
-    //4.在集合点的同步
+    //4.分开执行任务，最后聚合，CyclicBarrier
+    @org.junit.Test
+    public void cyclicBarrierTest() {
+        int searchCount = 4;
+
+        List<List<String>> results = new LinkedList<List<String>>();
+        ResultProcessTask resultProcessTask = new ResultProcessTask(results);
+        CyclicBarrier barrier = new CyclicBarrier(searchCount, resultProcessTask);
+
+        SearchFile search1 = new SearchFile("c:/","readme.txt");
+        SearchFile search2 = new SearchFile("c:/","log.txt");
+        SearchFile search3 = new SearchFile("d:/","log.txt");
+        SearchFile search4 = new SearchFile("d:/","readme.txt");
+
+        SearchTask task1 = new SearchTask(barrier, search1, results);
+        SearchTask task2 = new SearchTask(barrier, search2, results);
+        SearchTask task3 = new SearchTask(barrier, search3, results);
+        SearchTask task4 = new SearchTask(barrier, search4, results);
+
+        Thread t1 = new Thread(task1);
+        Thread t2 = new Thread(task2);
+        Thread t3 = new Thread(task3);
+        Thread t4 = new Thread(task4);
+
+        t1.start();
+        t2.start();
+        t3.start();
+        t4.start();
+
+        try {
+            t1.join();
+            t2.join();
+            t3.join();
+            t4.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("完成") ;
+
+    }
+
 }
