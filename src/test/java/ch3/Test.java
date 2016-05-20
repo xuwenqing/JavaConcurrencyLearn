@@ -1,13 +1,74 @@
 package ch3;
 
+import java.util.concurrent.CountDownLatch;
+
 /**
  * Created by wenqing on 2016/5/19.
  */
 public class Test {
-    //1.Ê¹ÓÃsemaphoreÊµÏÖÒ»¸ö´òÓ¡»úµÄ¹ÜÀí
-    //2.Ê¹ÓÃsemaphoreÊµÏÖ3¸ö´òÓ¡»úµÄ¹ÜÀí
-    //3.Ê¹ÓÃCountDownLatchÊµÏÖÊÓÆµ»áÒéÏµÍ³
-    //3.1 »áÒéÏß³Ì£¬µÈ´ı»áÒéÈËÊıÈ«²¿µ½´ï£¬CountDownLatch.await¿ªÊ¼»áÒé
-    //3.2 ²ÎÓëÕßÏß³Ì£¬Ëæ»úÖÆ¶¨µ½´ïÊ±¼ä£¬È»ºóCountDownLatch--
-    //4.ÔÚ¼¯ºÏµãµÄÍ¬²½
+    //1.ä½¿ç”¨semaphoreå®ç°ä¸€ä¸ªæ‰“å°æœºçš„ç®¡ç†
+    @org.junit.Test
+    public void testPrintOne() throws InterruptedException {
+        PrintQueueOne printqueue = new PrintQueueOne();
+        PrinterOne printer = new PrinterOne(printqueue);
+
+        Thread[] threads = new Thread[5];
+        for (int i = 0; i < threads.length; i++)
+            threads[i] = new Thread(printer);
+        for (int i = 0; i < threads.length; i++)
+            threads[i].start();
+
+        for (int i = 0; i < threads.length; i++)
+            threads[i].join();
+        System.out.println("æ‰“å°å®Œæˆ");
+    }
+
+
+    //2.ä½¿ç”¨semaphoreå®ç°3ä¸ªæ‰“å°æœºçš„ç®¡ç†
+    @org.junit.Test
+    public void testPrintMore() throws InterruptedException {
+        PrintQueueMore printqueue = new PrintQueueMore();
+        PrinterMore printer = new PrinterMore(printqueue);
+
+        Thread[] threads = new Thread[10];
+        for (int i = 0; i < threads.length; i++)
+            threads[i] = new Thread(printer);
+        for (int i = 0; i < threads.length; i++)
+            threads[i].start();
+
+        for (int i = 0; i < threads.length; i++)
+            threads[i].join();
+        System.out.println("æ‰“å°å®Œæˆ");
+    }
+
+    //3.ä½¿ç”¨CountDownLatchå®ç°è§†é¢‘ä¼šè®®ç³»ç»Ÿ
+    //3.1 ä¼šè®®çº¿ç¨‹ï¼Œç­‰å¾…ä¼šè®®äººæ•°å…¨éƒ¨åˆ°è¾¾ï¼ŒCountDownLatch.awaitå¼€å§‹ä¼šè®®
+    //3.2 å‚ä¸è€…çº¿ç¨‹ï¼Œéšæœºåˆ¶å®šåˆ°è¾¾æ—¶é—´ï¼Œç„¶åCountDownLatch--
+    @org.junit.Test
+    public void countDownLatchTest() throws InterruptedException {
+
+        Thread[] participates = new Thread[5];
+
+        CountDownLatch latch = new CountDownLatch(participates.length);
+
+        VideoConference videoConference = new VideoConference(latch);
+        Thread conference = new Thread(videoConference);
+
+        Participate participate = new Participate(latch);
+        for (int i = 0; i < participates.length; i++)
+            participates[i] = new Thread(participate,"å‚ä¼šè€…"+i);
+
+        conference.start();
+        for (int i = 0; i < participates.length; i++)
+            participates[i].start();
+
+        for (int i = 0; i < participates.length; i++)
+            participates[i].join();
+        conference.join();
+
+        System.out.println("å®Œæˆ");
+
+    }
+
+    //4.åœ¨é›†åˆç‚¹çš„åŒæ­¥
 }
